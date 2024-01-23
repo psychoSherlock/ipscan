@@ -3,7 +3,7 @@ from scapy.all import IP, sr1, ICMP, TCP
 import os
 from time import sleep, gmtime, strftime, time
 from datetime import datetime
-from terminaltables import AsciiTable
+from terminaltables import DoubleTable
 from colorama import Fore, init, Style
 from platform import system
 import re
@@ -151,7 +151,7 @@ def enumerateTargets(givenTarget):
     for x in live_targets:
         # Print the hosts table
         hostTable.append([str(x), f"{green}up{Fore.RESET}"])
-    print(AsciiTable(hostTable, "Alive Hosts").table)
+    print(DoubleTable(hostTable, "Alive Hosts").table)
     for l in live_targets:
         portScan(l)
 
@@ -167,6 +167,7 @@ else:
 # -------- Port Scan--------------------------#
 
 def scan_port(target_host, port):
+    global open_ports  # open ports wont be modified because every scan resets it to 0. if modifed while doing the portscan then no ports would be present
     try:
         # Create a socket object
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -178,16 +179,20 @@ def scan_port(target_host, port):
         sock.connect((target_host, port))
 
         # If successful, print the open port
-        print(f"[+] Port {port} is open")
+        open_ports.append(port)
 
         # Close the socket connection
         sock.close()
     except socket.error:
         pass  # Port is closed
+    return open_ports
 
 
 def portScan(target_ip):
+    global open_ports
+    open_ports = []  # Reset open ports list at the start of every new portScan such that ports of previous target is not present here
     # Print a banner with the target information
+    print('\n')
     print("-" * 60)
     print(f"Scanning target: {target_ip}")
     print("-" * 60)
@@ -209,10 +214,15 @@ def portScan(target_ip):
 
     # Record the end time
     end_time = time()
+    portTable = [["Port", "Status", "Service"]]
+    for o in open_ports:  # o is port
+        # Print the hosts table
+        portTable.append([str(o), f"{green}up{Fore.RESET}", "Test"])
+    print(DoubleTable(portTable, f"{target_ip}").table)
 
     # Calculate and print the time difference
     elapsed_time = end_time - start_time
-    print(f"\nScan completed in {elapsed_time:.2f} seconds.")
+    print(f"\nScan completed in {elapsed_time:.2f} seconds.\n")
 
 
 # -------- Port Scan--------------------------#
