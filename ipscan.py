@@ -10,8 +10,11 @@ import re
 import socket
 import ipaddress
 import threading
+import queue
+import logging
 
 #### configurations ###
+
 init(autoreset=True)  # To autoreset colors
 
 magneta = Fore.MAGENTA + Style.BRIGHT
@@ -26,6 +29,9 @@ if system() == 'Windows':
 else:
     pass
 
+# Disable scapy mac address error warning
+logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+
 ###########################
 print(magneta + """
  _____  _____    _____                     
@@ -39,11 +45,8 @@ print(magneta + """
 
 # ip = input("\n[?] Ip or Domain of Target: ")
 
-dataTable = []
-table = AsciiTable(dataTable)
 
-
-targets_list = []
+probable_targets = []
 
 
 def scan(givenTarget):
@@ -108,16 +111,49 @@ def is_host_up(host):
         return False
 
 
-def enumerateTargets(givenTarget):
-    global targets_list
-    targets_list = generate_ip_list(givenTarget)
-    for target in targets_list:  # Move the host_up such that only up hosts are scanned and portscan is after that
+def worker(host_queue):
+    while not host_queue.empty():
+        target = host_queue.get()
         if is_host_up(target):
             print(f"{target} is {green} up")
-            portScan(target)
-
+            live_targets.append(target)
         else:
-            print(f"{target} is {red} down")
+            # print(f"{target} is {red} down")
+            pass
+        host_queue.task_done()
+
+
+def enumerateTargets(givenTarget):
+    global probable_targets
+    probable_targets = generate_ip_list(givenTarget)
+    global live_targets
+    live_targets = []
+
+    # Use a queue to share targets among threads
+    target_queue = queue.Queue()
+    for target in probable_targets:
+        target_queue.put(target)
+
+    # Create and start threads
+    # Adjust the number of threads as needed
+    num_threads = min(30, target_queue.qsize())
+    threads = []
+    for _ in range(num_threads):
+        thread = threading.Thread(target=worker, args=(target_queue,))
+        threads.append(thread)
+        thread.start()
+
+    # Wait for all threads to finish
+    for thread in threads:
+        thread.join()
+    print('\n\n')
+    hostTable = [["Host", "Status"]]
+    for x in live_targets:
+        # Print the hosts table
+        hostTable.append([str(x), f"{green}up{Fore.RESET}"])
+    print(AsciiTable(hostTable, "Alive Hosts").table)
+    for l in live_targets:
+        portScan(l)
 
 
 fast_scan = True
@@ -187,4 +223,4 @@ def portScan(target_ip):
 # scan('goole.com')
 # scan('192.168.221.1-30')
 
-scan("192.168.43.1-53")
+scan("192.168.43.1/24")
