@@ -23,12 +23,6 @@ yellow = Fore.YELLOW + Style.BRIGHT
 red = Fore.RED + Style.BRIGHT
 
 
-if system() == 'Windows':
-    os.system("color 0a")
-
-else:
-    pass
-
 # Disable scapy mac address error warning
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
@@ -217,7 +211,7 @@ def portScan(target_ip):
     portTable = [["Port", "Status", "Service"]]
     for o in open_ports:  # o is port
         # Print the hosts table
-        portTable.append([str(o), f"{green}up{Fore.RESET}", "Test"])
+        portTable.append([str(o), f"{green}open{Fore.RESET}", "Test"])
     print(DoubleTable(portTable, f"{target_ip}").table)
 
     # Calculate and print the time difference
@@ -233,4 +227,4 @@ def portScan(target_ip):
 # scan('goole.com')
 # scan('192.168.221.1-30')
 
-scan("192.168.43.1/24")
+scan('scanme.nmap.org')
