@@ -14,6 +14,7 @@ import queue
 import logging
 import csv
 import argparse
+from banners import *
 #### configurations ###
 
 init(autoreset=True)  # To autoreset colors
@@ -181,6 +182,8 @@ def scan_port(target_host, port):
 
         # If successful, print the open port
         open_ports.append(port)
+        if args.service:
+            print(f"Port {green}{port}{Fore.RESET} is Open")
 
         # Close the socket connection
         sock.close()
@@ -196,6 +199,9 @@ def portScan(target_ip):
     print('\n')
     print("-" * 60)
     print(f"Scanning target: {target_ip}")
+    if args.service:
+        print(
+            f'\n{red}[+] Service scan is enabled. Open ports will be displayed to save time: ')
     print("-" * 60)
 
     # Record the start time
@@ -215,12 +221,31 @@ def portScan(target_ip):
 
     # Record the end time
     end_time = time()
-    portTable = [["PORT", "STATE", "SERVICE", "VERSION"]]
-    for o in open_ports:  # o is port
-        # Print the hosts table
-        portTable.append(
-            [str(o), f"{green}open{Fore.RESET}", f"{whatservice(str(o))}", ""])
-    print(DoubleTable(portTable, f"{target_ip}").table)
+
+    if not args.service:
+        # ----- Scan without service --------
+        portTable = [["PORT", "STATE", "SERVICE"]]
+        for o in open_ports:  # o is port
+            # Print the hosts table
+            portTable.append(
+                [str(o), f"{green}open{Fore.RESET}", f"{whatservice(str(o))}"])
+        print(DoubleTable(portTable, f"{target_ip}").table)
+
+        # ------- Scan without Service ------------
+
+    # -------- Scan with Service ------------
+    else:
+        print(f"\n{green}[!] Starting service scan...\n")
+        portTable = [["PORT", "STATE", "VERSION"]]
+
+        # Actual state and Actual Version
+        for o in open_ports:
+            actState, actVersion = banner_grab(target_ip, o)
+            portTable.append(
+                [str(o), f'{green if actState == "open" else red}{actState}{Fore.RESET}', f"{actVersion}"])
+        print(DoubleTable(portTable, f"{target_ip}").table)
+
+    # -------- Scan with service ------------
 
     # Calculate and print the time difference
     elapsed_time = end_time - start_time
@@ -230,13 +255,21 @@ def portScan(target_ip):
 # -------- Port Scan--------------------------#
 
 
+# --------- Version Detecter ------------------#
+
+
+# Added in banners.py for easy of reading
+
+# ---------- Version Detecter -----------------#
+
+
 # --------- Command Line Setup------------------#
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
         description="IPScan - Network Mapper and Vulnerability Scanner")
 
-    parser.add_argument('-t', '--target', dest='target', required=True,
+    parser.add_argument('-t', '--target', dest='target', required=False,
                         help='Target IP / Subnet / Domain')
 
     parser.add_argument('-p', '--port', dest='port', required=False,
@@ -245,7 +278,17 @@ def parse_arguments():
     parser.add_argument('-f', '--full-scan', dest='full_scan', action='store_true',
                         help='Scan all ports (1-65535). Default is 1-1024')
 
+    parser.add_argument('-sV', '--service-scan', dest="service", action='store_true',
+                        help="Identify the running services by fingerprinting and banner-grabbing. This may take more time")
+
+    parser.add_argument('-i', '--input', dest='input_file',
+                        help='Read input from a file. Each line will be treated as a target. You can also use CIDR notation')
+
     args = parser.parse_args()
+
+    if not args.target and not args.input_file:
+        parser.error(
+            "The -t/--target option is required unless -i/--input is provided.")
 
     # Port specifications
     global target_ports
@@ -267,7 +310,14 @@ def parse_arguments():
 def main():
     global args
     args = parse_arguments()
-    scan(args.target)
+    if args.input_file:
+        # Read lines from the input file and call the scan function for each line
+        with open(args.input_file, 'r') as file:
+            for line in file:
+                scan(line.strip())
+
+    else:
+        scan(args.target)
 
 
 if __name__ == "__main__":

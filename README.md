@@ -12,7 +12,8 @@ sudo setcap cap_net_raw+ep $(readlink -f $(which python))
 - at least do, http, ftp, ssh, mysql and filtered for all others.
   81.169.145.86 21 - wireshark - help command is used
 - collect ftps from hunter
-- -p for specific ports
+- Service scan
+- Print host scans multiple warning
 
 all usages:
 
