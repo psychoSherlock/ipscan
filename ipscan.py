@@ -12,6 +12,7 @@ import ipaddress
 import threading
 import queue
 import logging
+import csv
 
 #### configurations ###
 
@@ -25,6 +26,17 @@ red = Fore.RED + Style.BRIGHT
 
 # Disable scapy mac address error warning
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+
+
+def whatservice(port_number):
+    with open('service-ports.csv', 'r') as file:
+        csv_reader = csv.DictReader(file)
+
+        for row in csv_reader:
+            if row['Port Number'] == port_number:
+                return row['Service Name']
+    return "Unknown"  # Return None if the port number is not found
+
 
 ###########################
 print(magneta + """
@@ -141,7 +153,7 @@ def enumerateTargets(givenTarget):
     for thread in threads:
         thread.join()
     print('\n\n')
-    hostTable = [["Host", "Status"]]
+    hostTable = [["HOST", "STATUS"]]
     for x in live_targets:
         # Print the hosts table
         hostTable.append([str(x), f"{green}up{Fore.RESET}"])
@@ -208,10 +220,11 @@ def portScan(target_ip):
 
     # Record the end time
     end_time = time()
-    portTable = [["Port", "Status", "Service"]]
+    portTable = [["PORT", "STATE", "SERVICE", "VERSION"]]
     for o in open_ports:  # o is port
         # Print the hosts table
-        portTable.append([str(o), f"{green}open{Fore.RESET}", "Test"])
+        portTable.append(
+            [str(o), f"{green}open{Fore.RESET}", f"{whatservice(str(o))}", ""])
     print(DoubleTable(portTable, f"{target_ip}").table)
 
     # Calculate and print the time difference
@@ -227,4 +240,7 @@ def portScan(target_ip):
 # scan('goole.com')
 # scan('192.168.221.1-30')
 
-scan('scanme.nmap.org')
+# scan('scanme.nmap.org')
+scan("scanme.nmap.org")
+scan("google.com")
+scan("attacker.com")

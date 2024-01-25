@@ -7,3 +7,10 @@ sudo setcap cap_net_raw+ep $(readlink -f $(which python))
 
 - fast scan and complete scan
 - Verbosity
+- display port is open messages
+- banner grabbing for http (80)
+- banner grabbing for 3306 mysql
+- show filtered for unknowns
+- at least do, http, ftp, ssh, mysql and filtered for all others.
+  81.169.145.86 21 - wireshark - help command is used
+- collect ftps from hunter
