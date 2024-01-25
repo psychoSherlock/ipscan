@@ -13,7 +13,7 @@ import threading
 import queue
 import logging
 import csv
-
+import argparse
 #### configurations ###
 
 init(autoreset=True)  # To autoreset colors
@@ -162,11 +162,6 @@ def enumerateTargets(givenTarget):
         portScan(l)
 
 
-fast_scan = True
-if fast_scan:
-    target_ports = range(0, 1024 + 1)
-else:
-    target_ports = range(0, 65535)
 # If disabled, all ports will be scanned. Else 1024 ports will be scanned
 
 
@@ -235,12 +230,54 @@ def portScan(target_ip):
 # -------- Port Scan--------------------------#
 
 
+# --------- Command Line Setup------------------#
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description="IPScan - Network Mapper and Vulnerability Scanner")
+
+    parser.add_argument('-t', '--target', dest='target', required=True,
+                        help='Target IP / Subnet / Domain')
+
+    parser.add_argument('-p', '--port', dest='port', required=False,
+                        help='A single port / port range to scan. Eg: -p 20-25')
+
+    parser.add_argument('-f', '--full-scan', dest='full_scan', action='store_true',
+                        help='Scan all ports (1-65535). Default is 1-1024')
+
+    args = parser.parse_args()
+
+    # Port specifications
+    global target_ports
+    if args.full_scan:
+        target_ports = range(0, 65535)  # if full scan enabled, scan all ports
+    elif args.port:
+        if "-" in args.port:
+            x1, x2 = args.port.split('-')  # if range is given, scan the range
+            target_ports = list(range(int(x1), int(x2)))
+        else:
+            target_ports = [int(args.port)]  # just single port
+    else:
+        target_ports = range(0, 1024 + 1)  # fast scan with 1024 ports
+
+    return args
+# --------- Command Line Setup------------------#
+
+
+def main():
+    global args
+    args = parse_arguments()
+    scan(args.target)
+
+
+if __name__ == "__main__":
+    main()
+
 # scan('8.8.8.8')
 # scan("176.20.1.1/24")
 # scan('goole.com')
 # scan('192.168.221.1-30')
-
 # scan('scanme.nmap.org')
-scan("scanme.nmap.org")
-scan("google.com")
-scan("attacker.com")
+# scan("scanme.nmap.org")
+# scan("google.com")
+# scan("attacker.com")
