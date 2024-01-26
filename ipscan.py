@@ -243,7 +243,10 @@ def portScan(target_ip):
         # Actual state and Actual Version
         for o in open_ports:
             # Here args is passed for domain access and resolved in the banner function
-            actState, actVersion = banner_grab(actualGivenTarget, o)
+            try:
+                actState, actVersion = banner_grab(actualGivenTarget, o)
+            except:
+                actState, actVersion = "filtered", "N/A"
             portTable.append(
                 [str(o), f'{green if actState == "open" else red}{actState}{Fore.RESET}', f"{actVersion}"])
         print(DoubleTable(portTable, f"{target_ip}").table)

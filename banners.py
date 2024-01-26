@@ -5,6 +5,40 @@ import re
 import socket
 
 
+def mysql_parser(host, port):
+    try:
+        # Create a socket object
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Connect to the remote server
+        client_socket.connect((host, port))
+
+        # Send data (you can customize this if needed)
+        data_to_send = b'\x0b\x00\x00\x00\x0a'
+        client_socket.send(data_to_send)
+
+        # Receive the response
+        response = client_socket.recv(1024)
+
+        if b"mariadb" in response.lower():
+            mariadb_version_match = re.search(
+                b'MariaDB-1:([0-9]+\\.[0-9]+\\.[0-9]+)', response)
+            if mariadb_version_match:
+                mariadb_version = mariadb_version_match.group(
+                    1).decode('utf-8')
+                return "open", f"MariaDB {mariadb_version}"
+            else:
+                return "filtered", str(response)
+
+        # print(response)
+
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        # Close the socket
+        client_socket.close()
+
+
 def extract_ssh_version(banner):
     openssh_keyword = "OpenSSH"
 
@@ -21,6 +55,22 @@ def extract_ssh_version(banner):
         return banner
 
 
+def ftp_banner_parser(banner):
+    if "Pure-FTPd" in banner:
+        return "open", "Pure-FTPd"
+    elif "vsFTPd" in banner:
+        # Use regular expression to extract version number (5 characters including dots)
+        version_match = re.search(r'vsFTPd\s+([\d.]+)', banner)
+        if version_match:
+            return "open", f"vsFTPd {version_match.group(1)}"
+    elif "ProFTPD" in banner:
+        # Use regular expression to extract version number (5 characters including dots)
+        version_match = re.search(r'ProFTPD\s+([\d.]+)', banner)
+        if version_match:
+            return "open", f"ProFTPD {version_match.group(1)}"
+    return "open", banner
+
+
 def banner_grab(target_host, port):
     target_ip = socket.gethostbyname(target_host)
 
@@ -35,7 +85,7 @@ def banner_grab(target_host, port):
             sock.settimeout(10)
 
             # Attempt to connect to the target host and port
-            sock.connect((target_host, port))
+            sock.connect((target_ip, port))
 
             sock.send(b'\r\n')
             try:
@@ -49,19 +99,24 @@ def banner_grab(target_host, port):
             if banner:
                 if 'ssh' in banner.lower():
                     return "open", (extract_ssh_version(banner))
+                elif "220" in banner:
+                    print(ftp_banner_parser(banner))
+                    return ftp_banner_parser(banner)
                 else:
-                    pass
-                    print('No Banner Found')
+                    return mysql_parser(target_ip, port)
             else:
                 return "filtered", "N/A"
 
             # Close the socket connection
             sock.close()
         except socket.error as e:
-            print(e)
-            print(f"{port} connection timed out")
-            return "closed", "N/A"
-            pass  # Port is closed
+            try:
+                return mysql_parser(target_ip, port)
+            except:
+                print(e)
+                print(f"{port} connection timed out")
+                return "closed", "N/A"
+                pass  # Port is closed
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
