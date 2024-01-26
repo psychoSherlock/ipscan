@@ -57,6 +57,8 @@ probable_targets = []
 
 
 def scan(givenTarget):
+    global actualGivenTarget  # Required for later access
+    actualGivenTarget = givenTarget  # Actual target is later required for domain access
     # Check if the input contains any protocol specifications
     protocol_pattern = re.compile(r'^\s*(https?|ftp)://')
     if protocol_pattern.match(givenTarget):
@@ -240,7 +242,8 @@ def portScan(target_ip):
 
         # Actual state and Actual Version
         for o in open_ports:
-            actState, actVersion = banner_grab(target_ip, o)
+            # Here args is passed for domain access and resolved in the banner function
+            actState, actVersion = banner_grab(actualGivenTarget, o)
             portTable.append(
                 [str(o), f'{green if actState == "open" else red}{actState}{Fore.RESET}', f"{actVersion}"])
         print(DoubleTable(portTable, f"{target_ip}").table)
