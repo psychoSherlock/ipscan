@@ -1,0 +1,6 @@
+urllib3
+requests
+ping3
+scapy
+terminaltables
+colorama
