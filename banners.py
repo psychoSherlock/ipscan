@@ -74,7 +74,9 @@ def ftp_banner_parser(banner):
 def banner_grab(target_host, port):
     target_ip = socket.gethostbyname(target_host)
 
-    if port == 80 or port == 443:  # Assume they are web server for current case, more works on future
+    common_web_ports = [80, 443, 8080, 8000, 8443, 3128]
+
+    if port in common_web_ports:  # Assume they are web server for current case, more works on future
         return get_server_info(f"{target_host}:{port}")
     else:  # Else do socket scans
         try:
@@ -100,7 +102,6 @@ def banner_grab(target_host, port):
                 if 'ssh' in banner.lower():
                     return "open", (extract_ssh_version(banner))
                 elif "220" in banner:
-                    print(ftp_banner_parser(banner))
                     return ftp_banner_parser(banner)
                 else:
                     return mysql_parser(target_ip, port)
@@ -156,3 +157,6 @@ def get_server_info(url):
     except requests.exceptions.RequestException as e:
         print(f"\nError: {e}\n")
         return "filtered", "N/A"
+
+
+banner_grab("152.101.169.51", 21)

@@ -1,11 +1,7 @@
-from ping3 import ping, verbose_ping
-from scapy.all import IP, sr1, ICMP, TCP
-import os
-from time import sleep, gmtime, strftime, time
-from datetime import datetime
+from scapy.all import IP, sr1, ICMP
+from time import gmtime, strftime, time
 from terminaltables import DoubleTable
 from colorama import Fore, init, Style
-from platform import system
 import re
 import socket
 import ipaddress
@@ -15,6 +11,7 @@ import logging
 import csv
 import argparse
 from banners import *
+from vuln import searchvuln
 #### configurations ###
 
 init(autoreset=True)  # To autoreset colors
@@ -195,16 +192,26 @@ def scan_port(target_host, port):
 
 
 def portScan(target_ip):
+    global tosearchEDB
+    tosearchEDB = []
     global open_ports
     open_ports = []  # Reset open ports list at the start of every new portScan such that ports of previous target is not present here
     # Print a banner with the target information
     print('\n')
     print("-" * 60)
     print(f"Scanning target: {target_ip}")
-    if args.service:
+
+    if args.vulnscan:
+        print(
+            f'\n{red}[!] Vuln scan is enabled. Open ports will be displayed to save time while doing service scan and exploits will be displayed later ')
+    elif args.service:
         print(
             f'\n{red}[+] Service scan is enabled. Open ports will be displayed to save time: ')
     print("-" * 60)
+
+    # print(
+    #         f'\n{red}[+] Service scan is enabled. Open ports will be displayed to save time: ')
+    # print("-" * 60)
 
     # Record the start time
     start_time = time()
@@ -245,11 +252,17 @@ def portScan(target_ip):
             # Here args is passed for domain access and resolved in the banner function
             try:
                 actState, actVersion = banner_grab(actualGivenTarget, o)
+                if actVersion.lower() != "n/a":
+                    tosearchEDB.append(actVersion)
             except:
                 actState, actVersion = "filtered", "N/A"
             portTable.append(
                 [str(o), f'{green if actState == "open" else red}{actState}{Fore.RESET}', f"{actVersion}"])
         print(DoubleTable(portTable, f"{target_ip}").table)
+
+        if args.vulnscan:
+            searchvuln(tosearchEDB, actualGivenTarget)
+            pass
 
     # -------- Scan with service ------------
 
@@ -287,6 +300,9 @@ def parse_arguments():
     parser.add_argument('-sV', '--service-scan', dest="service", action='store_true',
                         help="Identify the running services by fingerprinting and banner-grabbing. This may take more time")
 
+    parser.add_argument('-vuln', '--vuln', dest="vulnscan", action='store_true',
+                        help="Scan the target for vulnerable services are display the related EDB code")
+
     parser.add_argument('-i', '--input', dest='input_file',
                         help='Read input from a file. Each line will be treated as a target. You can also use CIDR notation')
 
@@ -308,6 +324,10 @@ def parse_arguments():
             target_ports = [int(args.port)]  # just single port
     else:
         target_ports = range(0, 1024 + 1)  # fast scan with 1024 ports
+
+    # if vuln scan is enabled
+    if args.vulnscan:
+        args.service = True
 
     return args
 # --------- Command Line Setup------------------#
