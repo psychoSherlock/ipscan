@@ -157,6 +157,3 @@ def get_server_info(url):
     except requests.exceptions.RequestException as e:
         print(f"\nError: {e}\n")
         return "filtered", "N/A"
-
-
-banner_grab("152.101.169.51", 21)

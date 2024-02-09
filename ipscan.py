@@ -348,12 +348,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# scan('8.8.8.8')
-# scan("176.20.1.1/24")
-# scan('goole.com')
-# scan('192.168.221.1-30')
-# scan('scanme.nmap.org')
-# scan("scanme.nmap.org")
-# scan("google.com")
-# scan("attacker.com")

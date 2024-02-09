@@ -2,3 +2,6 @@ __pycache__/ipscan.cpython-311.pyc
 test*
 __pycache__/banners.cpython-311.pyc
 .env
+ipscan.zip
+__pycache__/vuln.cpython-311.pyc
+ipscan-full.zip
