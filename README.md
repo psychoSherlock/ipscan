@@ -1,3 +1,4 @@
+This is a small project I developed for my seniors as their final year project
 # IPScan - Network Mapper and Vulnerability Scanner
 IPScan is a Python-based tool designed to perform network mapping and vulnerability scanning. It allows users to target specific IP addresses, subnets, or domains and scan for open ports and potential vulnerabilities and display them in a table like output along with colors.
 
