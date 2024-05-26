@@ -2,6 +2,12 @@ This is a small project I developed for my seniors as their final year project
 # IPScan - Network Mapper and Vulnerability Scanner
 IPScan is a Python-based tool designed to perform network mapping and vulnerability scanning. It allows users to target specific IP addresses, subnets, or domains and scan for open ports and potential vulnerabilities and display them in a table like output along with colors.
 
+![image](https://github.com/psychoSherlock/ipscan/assets/81918189/f58fb85d-fe52-4a83-8bfc-99b199707fce)
+![image](https://github.com/psychoSherlock/ipscan/assets/81918189/75047024-0f78-4c3d-9613-e48115aa4369)
+![image](https://github.com/psychoSherlock/ipscan/assets/81918189/5fcc0f9e-eebc-48b3-aaa6-6591f22479ca)
+![image](https://github.com/psychoSherlock/ipscan/assets/81918189/74017d0b-0a21-4bea-a9ac-3e44120e045a)
+
+
 # Installation / Setup
 
 ```sh
@@ -28,6 +34,7 @@ sudo setcap cap_net_raw+ep $(readlink -f $(which python))
 - Scan from input file
 - Service scan to banner grab most used Services and print them 
 - Vuln scan to scan for vulnerabilities using exploit-db
+
 
 # Usage
 
