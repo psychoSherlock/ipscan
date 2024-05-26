@@ -59,14 +59,3 @@ This command will perform a full scan on the target domain  www.example.com.
 
 Please note that the  `-t`  (or  `--target`) argument is required for the script to run. The  `-p`  (or  `--port`) and  `-f`  (or  `--full-scan`) arguments are optional, but at least one of them must be provided.
 
-
-## Team
-Person1 - Command Line Argument Parsing: Person1 is responsible for setting up the command-line interface for the script. This includes defining the arguments that the script accepts and handling the user's input. This task involves working with the argparse module and is primarily focused on the parse_arguments function.
-
-Person2 - Port Scanning: Person2 is responsible for implementing the port scanning functionality. This involves writing the code that sends requests to different ports on the target system and checks whether they are open or closed.
-
-Person3 - Service Scanning: Person3 is responsible for implementing the service scanning functionality. This involves writing the code that identifies the services running on the open ports of the target system.
-
-Person4 - Vulnerability Scanning: Person4 is responsible for implementing the vulnerability scanning functionality. This involves writing the code that checks the target system for known vulnerabilities. The searchvuln function seems to be part of this task.
-
-Person5 - Output Formatting and Timing: Person5 is responsible for formatting the output of the script and calculating the time it takes to complete the scan. This involves working with the DoubleTable class and the time module.
